@@ -1,0 +1,3 @@
+#define Mtfind_VERSION_MAJOR @mtfind_VERSION_MAJOR@
+#define Mtfind_VERSION_MINOR @mtfind_VERSION_MINOR@
+
