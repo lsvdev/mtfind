@@ -22,7 +22,7 @@ void WorkerThread::WorkerFunction() {
             break;
         } else if (!_tasksQueue->IsEmpty()) {
 
-            MatchTask_t matchTask = _tasksQueue->PopFront();
+            SearchTask_t matchTask = _tasksQueue->PopFront();
             lock.unlock();
 
             matchTask();

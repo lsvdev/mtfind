@@ -7,7 +7,7 @@ int main(int argc, char *argv[])
         InputParametersReader paramsReader;
         auto inputParameters = paramsReader.Read(argc, argv);
 
-        Application app(&inputParameters);
+        Application app(inputParameters);
         auto report = app.Run();
 
         std::cout << *(report);

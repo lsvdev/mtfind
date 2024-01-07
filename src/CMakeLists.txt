@@ -8,12 +8,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 configure_file(MtfindConfig.h.in MtfindConfig.h)
 
 add_executable(mtfind 
-               main.cpp 
-               MatchTaskQueue.cpp 
-               LinesReader.cpp 
-               LinesReaderThread.cpp 
+               main.cpp
+               SearchTaskQueue.cpp
+               LinesReader.cpp
+               LinesReaderThread.cpp
                WorkerThread.cpp
-               InputParametersReader.cpp 
+               InputParametersReader.cpp
                Report.cpp)
 
 target_include_directories(mtfind PUBLIC "${PROJECT_BINARY_DIR}")

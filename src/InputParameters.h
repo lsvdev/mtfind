@@ -6,7 +6,8 @@
 
 struct InputParameters {
   std::string fileName;
-  std::regex searchMask;
+  std::string searchMask;
+  std::regex regexMask;
 };
 
 #endif //

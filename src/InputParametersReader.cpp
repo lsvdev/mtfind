@@ -28,7 +28,7 @@ std::string ReadFileName(const std::string &input)
     return input;
 }
 
-std::regex ReadMask(const std::string &input)
+std::regex ReadRegexMask(const std::string &input)
 {
     if (input.length() > 1000)
     {
@@ -43,6 +43,23 @@ std::regex ReadMask(const std::string &input)
     std::replace(translatedMask.begin(), translatedMask.end(), '?', '.');
 
     return std::regex(translatedMask);
+}
+
+std::string ReadMask(const std::string &input)
+{
+    if (input.length() > 1000)
+    {
+        throw std::invalid_argument("Search mask should be not more than 1000 characters length");
+    }
+
+    if(input.find("\n") != std::string::npos) {
+        throw std::invalid_argument("Search mask should not contain new line character");
+    }
+
+    std::string translatedMask(input);
+    std::replace(translatedMask.begin(), translatedMask.end(), '?', '.');
+
+    return std::move(translatedMask);
 }
 
 void PrintVersion(char *argv[])
@@ -61,6 +78,7 @@ InputParameters InputParametersReader::Read(int argc, char *argv[])
 
     auto fileName = ReadFileName(argv[1]);
     auto searchMask = ReadMask(argv[2]);
+    auto regexMask = ReadRegexMask(argv[2]);
 
-    return InputParameters{fileName, searchMask};
+    return InputParameters{fileName, searchMask, regexMask};
 }

@@ -1,5 +1,4 @@
 #include "LinesReader.h"
-#include "MatchTaskFactory.h"
 
 #include <iostream>
 #include <exception>

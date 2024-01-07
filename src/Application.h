@@ -2,8 +2,8 @@
 #define APPLICATION_H
 
 #include "MtfindConfig.h"
-#include "MatchTaskQueue.h"
-#include "MatchTaskFactory.h"
+#include "SearchTaskQueue.h"
+#include "DefaultFactory.h"
 #include "LinesReader.h"
 #include "LinesReaderThread.h"
 #include "ILinesReaderObserver.h"
@@ -19,8 +19,8 @@ class Application: public ILinesReaderObserver {
 
 public:
 
-    Application(const InputParameters* inputParameters) {
-        _Init(inputParameters);
+    Application(const InputParameters& inputParameters): _inputParameters(inputParameters) {
+        _Init();
     }
 
     std::shared_ptr<Report> Run() {
@@ -50,7 +50,7 @@ public:
     }
 
     void OnNewLine(uint64_t lineNumber, const std::string& line) override {
-        auto task = std::move(MatchTaskFactory::MakeTask(lineNumber, line, _inputParameters->searchMask));
+        auto task = _searchFactory->MakeSearchTask(_searchStrategy, lineNumber, line);
         _results.push_back(task.get_future());
         _matchTasksQueue->PushBack(std::move(task));
     }
@@ -61,11 +61,12 @@ public:
 
 private:
 
-    void _Init(const InputParameters* inputParameters) {
-        _inputParameters = inputParameters;
-        _matchTasksQueue = std::make_shared<MatchTaskQueue>(_linesQueueCondition, _linesQueueMutex);
-        _linesReader = _MakeLinesReader(inputParameters->fileName);
-        _workers = _MakeWorkers(_matchTasksQueue, inputParameters->searchMask, _linesQueueCondition, _linesQueueMutex);
+    void _Init() {
+        _matchTasksQueue = std::make_shared<SearchTaskQueue>(_linesQueueCondition, _linesQueueMutex);
+        _linesReader = _MakeLinesReader(_inputParameters.fileName);
+        _searchFactory = std::make_shared<DefaultFactory>(_inputParameters);
+        _searchStrategy = _searchFactory->MakeSearchStrategy();
+        _workers = _MakeWorkers(_matchTasksQueue, _linesQueueCondition, _linesQueueMutex);
     }
 
     std::shared_ptr<Report> _MakeReport(const std::vector<Match>& matches) {
@@ -95,10 +96,8 @@ private:
         return oss.str();
     }
 
-    std::vector<std::shared_ptr<WorkerThread>> _MakeWorkers(std::shared_ptr<MatchTaskQueue> linesQueue,
-                    std::regex searchMask,
-                    std::condition_variable& linesQueueCondition,
-                    std::mutex& linesQueueMutex) {
+    std::vector<std::shared_ptr<WorkerThread>> _MakeWorkers(std::shared_ptr<SearchTaskQueue> linesQueue,
+                                                            std::condition_variable& linesQueueCondition, std::mutex& linesQueueMutex) {
 
         auto numberOfWorkers = _GetNumberOfWorkers();
 
@@ -117,12 +116,13 @@ private:
 
     std::condition_variable _linesQueueCondition;
     std::mutex _linesQueueMutex;
-    std::shared_ptr<MatchTaskQueue> _matchTasksQueue;
+    std::shared_ptr<SearchTaskQueue> _matchTasksQueue;
     std::shared_ptr<LinesReaderThread> _linesReader;
     std::vector<std::shared_ptr<WorkerThread>> _workers;
-    const InputParameters* _inputParameters;
+    const InputParameters& _inputParameters;
     std::vector<std::future<std::vector<Match>>> _results;
-
+    std::shared_ptr<SearchFactory> _searchFactory;
+    std::shared_ptr<SearchStrategy> _searchStrategy;
 };
 
 #endif // APPLICATION_H
